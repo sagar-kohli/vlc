@@ -791,11 +791,12 @@ static void on_player_aout_mute_changed(vlc_player_t *, bool muted, void *data)
     });
 }
 
-static void on_player_aout_device_changed(vlc_player_t *, const char *, void *data){
-    PlayerControllerPrivate* that = static_cast<PlayerControllerPrivate*>(data);
-    msg_Dbg( that->p_intf, "on_player_aout_device_changed");
-    emit that->q_func()->audioDeviceChanged();
-}
+// static void on_player_aout_device_changed(vlc_player_t *, const char *device, void *data)
+// {
+//     PlayerControllerPrivate* that = static_cast<PlayerControllerPrivate*>(data);
+//     msg_Dbg( that->p_intf, "on_player_aout_device_changed");
+//     emit that->q_func()->audioDeviceChanged( device );
+// }
 
 static void on_player_corks_changed(vlc_player_t *, unsigned, void *data)
 {
@@ -849,7 +850,7 @@ static const struct vlc_player_vout_cbs player_vout_cbs = {
 static const struct vlc_player_aout_cbs player_aout_cbs = {
     on_player_aout_volume_changed,
     on_player_aout_mute_changed,
-    on_player_aout_device_changed,
+    // on_player_aout_device_changed
     nullptr
 };
 
@@ -863,7 +864,7 @@ PlayerControllerPrivate::PlayerControllerPrivate(PlayerController *playercontrol
     , m_titleList(m_player)
     , m_chapterList(m_player)
     , m_programList(m_player)
-    , m_audioDeviceList(m_player)
+    , m_audioDeviceList(p_intf)
     , m_zoom((vout_thread_t*)nullptr, "zoom")
     , m_aspectRatio((vout_thread_t*)nullptr, "aspect-ratio")
     , m_crop((vout_thread_t*)nullptr, "crop")
@@ -882,7 +883,7 @@ PlayerControllerPrivate::PlayerControllerPrivate(PlayerController *playercontrol
 
     QObject::connect( &m_autoscale, &QVLCBool::valueChanged, q_ptr, &PlayerController::autoscaleChanged );
     QObject::connect( &m_audioVisualization, &VLCVarChoiceModel::hasCurrentChanged, q_ptr, &PlayerController::hasAudioVisualizationChanged );
-    QObject::connect( q_ptr, &PlayerController::audioDeviceChanged, &m_audioDeviceList, &AudioDeviceModel::updateCurrent);
+    // QObject::connect( q_ptr, &PlayerController::audioDeviceChanged, &m_audioDeviceList, &AudioDeviceModel::updateCurrent);
 }
 
 PlayerController::PlayerController( intf_thread_t *_p_intf )
@@ -1466,7 +1467,7 @@ QABSTRACTLIST_GETTER( TrackListModel, getAudioTracks, m_audioTracks)
 QABSTRACTLIST_GETTER( TrackListModel, getSubtitleTracks, m_subtitleTracks)
 QABSTRACTLIST_GETTER( TitleListModel, getTitles, m_titleList)
 QABSTRACTLIST_GETTER( ChapterListModel, getChapters, m_chapterList)
-QABSTRACTLIST_GETTER( AudioDeviceModel, getAudioDevices, m_audioDeviceList);
+QABSTRACTLIST_GETTER( AudioDeviceModel, getAudioDevices, m_audioDeviceList)
 QABSTRACTLIST_GETTER( ProgramListModel, getPrograms, m_programList)
 QABSTRACTLIST_GETTER( VLCVarChoiceModel, getZoom, m_zoom)
 QABSTRACTLIST_GETTER( VLCVarChoiceModel, getAspectRatio, m_aspectRatio)

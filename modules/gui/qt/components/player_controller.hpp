@@ -379,7 +379,7 @@ signals:
     //aout properties
     void volumeChanged( float );
     void soundMuteChanged( bool );
-    void audioDeviceChanged();
+    // void audioDeviceChanged( const char* );
     void hasAudioVisualizationChanged( bool );
 
     //misc

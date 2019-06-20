@@ -20,12 +20,11 @@
 
 AudioDeviceModel::AudioDeviceModel(intf_thread_t *p_intf, QObject *parent)
     : QAbstractListModel(parent)
+    // , m_player(player)
 {
-    assert(p_intf);
-    
-    aout = p_intf->p_sys->p_mainPlayerController->getAout();
+    // assert(p_intf);
 
-    i_inputs = aout_DevicesList( aout.get(), &ids, &names);
+    i_inputs = aout_DevicesList( p_intf->p_sys->p_mainPlayerController->getAout().get(), &ids, &names);
 
     // connect ( ?????, SIGNAL(audio_device_changed()), this, SLOT(updateCurrent()) );
 }
@@ -34,7 +33,7 @@ AudioDeviceModel::~AudioDeviceModel()
 {
     free( ids );
     free( names );
-    free( m_current );
+    // free( m_current );
 }
 
 Qt::ItemFlags AudioDeviceModel::flags(const QModelIndex &) const
@@ -62,51 +61,56 @@ QVariant AudioDeviceModel::data(const QModelIndex &index, int role) const
     if (role == Qt::DisplayRole)
         return qfu(name);
     else if (role == Qt::CheckStateRole)
-        return QVariant::fromValue<bool>((m_current && !strcmp( ids[row], m_current ) ) ||
-            ( m_current == NULL && ids[row] && ids[row][0] == '\0' ) );
+        return QVariant::fromValue<bool>(false);
+            // (m_current && !strcmp( ids[row], m_current ) ) ||
+            // ( m_current == NULL && ids[row] && ids[row][0] == '\0' ) );
 
     return QVariant();
 }
 
-bool AudioDeviceModel::setData(const QModelIndex &index, const QVariant &value, int role)
-{
-    int row = index.row();
-    if ( role != Qt::CheckStateRole )
-        return false;
-    if (!value.canConvert<bool>())
-        return false;
-    bool select = value.toBool();
-    if (select)
-    {
-        aout_DeviceSet( aout.get(), ids[row]);
-    }
-    return true;
-}
+// bool AudioDeviceModel::setData(const QModelIndex &index, const QVariant &value, int role)
+// {
+//     int row = index.row();
+//     if ( role != Qt::CheckStateRole )
+//         return false;
+//     if (!value.canConvert<bool>())
+//         return false;
+//     bool select = value.toBool();
+//     if (select)
+//     {
+//         aout_DeviceSet( p_intf->p_sys->p_mainPlayerController->getAout().get(), ids[row]);
+//     }
+//     return true;
+// }
 
-void AudioDeviceModel::updateCurrent()
-{
-    char *current = aout_DeviceGet( aout.get() );
-    if ( !strcmp( current, m_current ) )
-        return;
-    char *oldCurrent = m_current;
-    m_current = current;
+// void AudioDeviceModel::updateCurrent()
+// {
+//     char *current = aout_DeviceGet( aout.get() );
+//     if ( !strcmp( current, m_current ) )
+//         return;
+//     char *oldCurrent = m_current;
+//     m_current = current;
 
-    QModelIndex oldIndex;
-    QModelIndex currentIndex;
+//     QModelIndex oldIndex;
+//     QModelIndex currentIndex;
 
-    for(int i=0; i<i_inputs; i++ )
-    {
-        if(!strcmp( ids[i], m_current )){
-            currentIndex = index(i);
-        }
-        if(!strcmp( ids[i], oldCurrent )){
-            oldIndex = index(i);
-        }
-    }
+//     for(int i=0; i<i_inputs; i++ )
+//     {
+//         if(!strcmp( ids[i], m_current )){
+//             currentIndex = index(i);
+//         }
+//         if(!strcmp( ids[i], oldCurrent )){
+//             oldIndex = index(i);
+//         }
+//     }
 
-    emit dataChanged(oldIndex, oldIndex, { Qt::CheckStateRole });
-    emit dataChanged(currentIndex, currentIndex, { Qt::CheckStateRole });
-}
+//     emit dataChanged(oldIndex, oldIndex, { Qt::CheckStateRole });
+//     emit dataChanged(currentIndex, currentIndex, { Qt::CheckStateRole });
+// }
+
+// void AudioDeviceModel::updateCurrent(){
+//     printf("******************************");
+// }
 
 QHash<int, QByteArray> AudioDeviceModel::roleNames() const
 {

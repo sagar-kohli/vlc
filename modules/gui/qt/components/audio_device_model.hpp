@@ -49,19 +49,19 @@ public:
 
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    // virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
         
     QHash<int, QByteArray> roleNames() const override;
 
 public slots:
-	void updateCurrent();
+	// void updateCurrent();
 
 private:
+	// vlc_player_t* m_player = nullptr;
     int i_inputs;
     char **names;
     char **ids;
-    PlayerController::AoutPtr aout;
-    char *m_current;
+    // char *m_current;
 };
 
 #endif // AUDIO_DEVICE_MODEL_HPP
