@@ -30,6 +30,7 @@
 #include <QScopedPointer>
 #include <vlc_cxx_helpers.hpp>
 #include "util/input_models.hpp"
+#include "components/audio_device_model.hpp"
 #include "adapters/var_choice_model.hpp"
 #include "util/vlctick.hpp"
 
@@ -126,7 +127,6 @@ public:
     //title/chapters/menu
     Q_PROPERTY(TitleListModel* titles READ getTitles CONSTANT)
     Q_PROPERTY(ChapterListModel* chapters READ getChapters CONSTANT)
-
     Q_PROPERTY(bool hasTitles READ hasTitles NOTIFY hasTitlesChanged)
     Q_PROPERTY(bool hasChapters READ hasChapters NOTIFY hasChaptersChanged)
     Q_PROPERTY(bool hasMenu READ hasMenu NOTIFY hasMenuChanged)
@@ -157,6 +157,7 @@ public:
     //aout properties
     Q_PROPERTY(float volume READ getVolume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY soundMuteChanged)
+    Q_PROPERTY(AudioDeviceModel* devices READ getAudioDevices CONSTANT)
     Q_PROPERTY(VLCVarChoiceModel* audioStereoMode READ getAudioStereoMode CONSTANT)
     Q_PROPERTY(VLCVarChoiceModel* audioVisualization READ getAudioVisualizations CONSTANT)
     Q_PROPERTY(bool hasAudioVisualization READ hasAudioVisualization NOTIFY hasAudioVisualizationChanged)
@@ -308,6 +309,9 @@ public slots:
     void setVolume( float volume );
     bool isMuted() const;
     void setMuted( bool muted );
+    AudioDeviceModel* getAudioDevices();
+
+
     VLCVarChoiceModel* getAudioStereoMode();
     VLCVarChoiceModel* getAudioVisualizations();
     bool hasAudioVisualization() const;
@@ -375,6 +379,7 @@ signals:
     //aout properties
     void volumeChanged( float );
     void soundMuteChanged( bool );
+    void audioDeviceChanged();
     void hasAudioVisualizationChanged( bool );
 
     //misc
