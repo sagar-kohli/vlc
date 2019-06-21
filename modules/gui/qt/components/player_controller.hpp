@@ -157,7 +157,7 @@ public:
     //aout properties
     Q_PROPERTY(float volume READ getVolume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY soundMuteChanged)
-    Q_PROPERTY(AudioDeviceModel* devices READ getAudioDevices CONSTANT)
+    Q_PROPERTY(AudioDeviceModel* audioDevices READ getAudioDevices CONSTANT)
     Q_PROPERTY(VLCVarChoiceModel* audioStereoMode READ getAudioStereoMode CONSTANT)
     Q_PROPERTY(VLCVarChoiceModel* audioVisualization READ getAudioVisualizations CONSTANT)
     Q_PROPERTY(bool hasAudioVisualization READ hasAudioVisualization NOTIFY hasAudioVisualizationChanged)

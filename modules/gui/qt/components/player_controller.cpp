@@ -236,7 +236,6 @@ static void on_player_state_changed(vlc_player_t *, enum vlc_player_state state,
             PlayerController::AoutPtr aout = q->getAout();
             that->m_audioStereoMode.resetObject( aout.get() );
             that->m_audioVisualization.resetObject( aout.get() );
-            // that->m_audioDeviceList.resetDevice();
             break;
         }
         case VLC_PLAYER_STATE_PAUSED:
@@ -799,8 +798,6 @@ static void on_player_aout_device_changed(vlc_player_t *,const char *device, voi
     that->callAsync([that,device](){
         that->m_audioDeviceList.updateCurrent(device);
     });
-
-    // emit that->q_func()->audioDeviceChanged( device );
 }
 
 static void on_player_corks_changed(vlc_player_t *, unsigned, void *data)

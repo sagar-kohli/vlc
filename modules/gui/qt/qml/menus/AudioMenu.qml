@@ -27,15 +27,9 @@ Utils.MenuExt {
         model: player.audioTracks
     }
 
-    /* FIXME port to QML
-    Menu {
-        title: qsTr("Audio &Device")
-    }
-    */
-
     CheckableModelSubMenu {
         title: qsTr("Audio &Device")
-        model: player.devices
+        model: player.audioDevices
     }
 
     CheckableModelSubMenu {

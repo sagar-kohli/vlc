@@ -49,11 +49,9 @@ int AudioDeviceModel::rowCount(const QModelIndex &parent) const
 
 QVariant AudioDeviceModel::data(const QModelIndex &index, int role) const
 {
+    int row = index.row();
     if (!index.isValid())
         return QVariant();
-
-    int row = index.row();
-
     const char *name = m_names[row];
 
     if (role == Qt::DisplayRole)
