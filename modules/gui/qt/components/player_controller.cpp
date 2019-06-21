@@ -236,6 +236,7 @@ static void on_player_state_changed(vlc_player_t *, enum vlc_player_state state,
             PlayerController::AoutPtr aout = q->getAout();
             that->m_audioStereoMode.resetObject( aout.get() );
             that->m_audioVisualization.resetObject( aout.get() );
+            // that->m_audioDeviceList.resetDevice();
             break;
         }
         case VLC_PLAYER_STATE_PAUSED:
@@ -791,12 +792,16 @@ static void on_player_aout_mute_changed(vlc_player_t *, bool muted, void *data)
     });
 }
 
-// static void on_player_aout_device_changed(vlc_player_t *, const char *device, void *data)
-// {
-//     PlayerControllerPrivate* that = static_cast<PlayerControllerPrivate*>(data);
-//     msg_Dbg( that->p_intf, "on_player_aout_device_changed");
-//     emit that->q_func()->audioDeviceChanged( device );
-// }
+static void on_player_aout_device_changed(vlc_player_t *,const char *device, void *data)
+{
+    PlayerControllerPrivate* that = static_cast<PlayerControllerPrivate*>(data);
+    msg_Dbg( that->p_intf, "on_player_aout_device_changed");
+    that->callAsync([that,device](){
+        that->m_audioDeviceList.updateCurrent(device);
+    });
+
+    // emit that->q_func()->audioDeviceChanged( device );
+}
 
 static void on_player_corks_changed(vlc_player_t *, unsigned, void *data)
 {
@@ -850,8 +855,8 @@ static const struct vlc_player_vout_cbs player_vout_cbs = {
 static const struct vlc_player_aout_cbs player_aout_cbs = {
     on_player_aout_volume_changed,
     on_player_aout_mute_changed,
-    // on_player_aout_device_changed
-    nullptr
+    on_player_aout_device_changed
+    // nullptr
 };
 
 PlayerControllerPrivate::PlayerControllerPrivate(PlayerController *playercontroller, intf_thread_t *p_intf)
@@ -883,7 +888,6 @@ PlayerControllerPrivate::PlayerControllerPrivate(PlayerController *playercontrol
 
     QObject::connect( &m_autoscale, &QVLCBool::valueChanged, q_ptr, &PlayerController::autoscaleChanged );
     QObject::connect( &m_audioVisualization, &VLCVarChoiceModel::hasCurrentChanged, q_ptr, &PlayerController::hasAudioVisualizationChanged );
-    // QObject::connect( q_ptr, &PlayerController::audioDeviceChanged, &m_audioDeviceList, &AudioDeviceModel::updateCurrent);
 }
 
 PlayerController::PlayerController( intf_thread_t *_p_intf )

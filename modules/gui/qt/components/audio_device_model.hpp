@@ -32,7 +32,6 @@
 #include <QObject>
 #include <QStringList>
 #include <vlc_aout.h>
-#include "components/player_controller.hpp"
 
 class AudioDeviceModel : public QAbstractListModel
 {
@@ -49,19 +48,18 @@ public:
 
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    // virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
         
     QHash<int, QByteArray> roleNames() const override;
 
-public slots:
-	// void updateCurrent();
+	void updateCurrent(const char *current);
 
 private:
-	// vlc_player_t* m_player = nullptr;
-    int i_inputs;
-    char **names;
-    char **ids;
-    // char *m_current;
+    mutable int m_inputs;
+    mutable char **m_names;
+    mutable char **m_ids;
+    intf_thread_t* p_intf = nullptr;
+    const char *m_current;
 };
 
 #endif // AUDIO_DEVICE_MODEL_HPP
