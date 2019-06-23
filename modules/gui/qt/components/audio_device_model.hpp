@@ -38,7 +38,7 @@ class AudioDeviceModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    AudioDeviceModel(intf_thread_t *p_intf, QObject *parent = nullptr);
+    AudioDeviceModel(vlc_player_t *player, QObject *parent = nullptr);
 
     ~AudioDeviceModel();
 
@@ -52,14 +52,19 @@ public:
         
     QHash<int, QByteArray> roleNames() const override;
 
-	void updateCurrent(const char *current);
+    void updateCurrent(std::string current);
+
+    vlc_player_t *m_player;
+
 
 private:
-    mutable int m_inputs;
-    mutable char **m_names;
-    mutable char **m_ids;
+    int m_inputs;
+    char **m_names;
+    char **m_ids;
     intf_thread_t* p_intf = nullptr;
-    const char *m_current;
+    std::string  m_current;
+    vlc_player_aout_listener_id* m_player_aout_listener = nullptr;
+    audio_output_t* aout = nullptr;
 };
 
 #endif // AUDIO_DEVICE_MODEL_HPP

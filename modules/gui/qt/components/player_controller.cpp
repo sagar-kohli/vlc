@@ -791,15 +791,6 @@ static void on_player_aout_mute_changed(vlc_player_t *, bool muted, void *data)
     });
 }
 
-static void on_player_aout_device_changed(vlc_player_t *,const char *device, void *data)
-{
-    PlayerControllerPrivate* that = static_cast<PlayerControllerPrivate*>(data);
-    msg_Dbg( that->p_intf, "on_player_aout_device_changed");
-    that->callAsync([that,device](){
-        that->m_audioDeviceList.updateCurrent(device);
-    });
-}
-
 static void on_player_corks_changed(vlc_player_t *, unsigned, void *data)
 {
     PlayerControllerPrivate* that = static_cast<PlayerControllerPrivate*>(data);
@@ -852,8 +843,7 @@ static const struct vlc_player_vout_cbs player_vout_cbs = {
 static const struct vlc_player_aout_cbs player_aout_cbs = {
     on_player_aout_volume_changed,
     on_player_aout_mute_changed,
-    on_player_aout_device_changed
-    // nullptr
+    nullptr
 };
 
 PlayerControllerPrivate::PlayerControllerPrivate(PlayerController *playercontroller, intf_thread_t *p_intf)
@@ -866,7 +856,7 @@ PlayerControllerPrivate::PlayerControllerPrivate(PlayerController *playercontrol
     , m_titleList(m_player)
     , m_chapterList(m_player)
     , m_programList(m_player)
-    , m_audioDeviceList(p_intf)
+    , m_audioDeviceList(m_player)
     , m_zoom((vout_thread_t*)nullptr, "zoom")
     , m_aspectRatio((vout_thread_t*)nullptr, "aspect-ratio")
     , m_crop((vout_thread_t*)nullptr, "crop")

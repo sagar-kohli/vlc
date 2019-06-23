@@ -18,17 +18,51 @@
 
 #include "audio_device_model.hpp"
 #include "components/player_controller.hpp"
+#include "components/player_controller_p.hpp"
 
-AudioDeviceModel::AudioDeviceModel(intf_thread_t *p_intf, QObject *parent)
-    : QAbstractListModel(parent)
-    , p_intf(p_intf)
+extern "C" {
+
+static void on_player_aout_device_changed(vlc_player_t *,const char *device, void *data)
 {
+    AudioDeviceModel* that = static_cast<AudioDeviceModel*>(data);
+    QMetaObject::invokeMethod(that, [that, device=std::string(device)](){
+        that->updateCurrent(device);
+    }, Qt::QueuedConnection, nullptr);
+}
+
+}
+
+static const struct vlc_player_aout_cbs player_aout_cbs = {
+    nullptr,
+    nullptr,
+    on_player_aout_device_changed
+};
+
+AudioDeviceModel::AudioDeviceModel(vlc_player_t *player, QObject *parent)
+    : QAbstractListModel(parent)
+    , m_player(player)
+{
+    {
+        vlc_player_locker locker{m_player};
+        m_player_aout_listener = vlc_player_aout_AddListener( m_player, &player_aout_cbs, this );
+    }
+
+    aout = vlc_player_aout_Hold( m_player );
+
+    m_inputs = aout_DevicesList( aout, &m_ids, &m_names); 
+
 }
 
 AudioDeviceModel::~AudioDeviceModel()
 {
     free( m_ids );
     free( m_names );
+
+    vlc_player_locker locker{m_player};
+    vlc_player_aout_RemoveListener( m_player, m_player_aout_listener );
+
+    aout_Release(aout);  
+
 }
 
 Qt::ItemFlags AudioDeviceModel::flags(const QModelIndex &) const
@@ -40,9 +74,6 @@ int AudioDeviceModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
         return 0;
-
-    PlayerController::AoutPtr aout = p_intf->p_sys->p_mainPlayerController->getAout();
-    m_inputs = aout_DevicesList( aout.get(), &m_ids, &m_names);
 
     return m_inputs;
 }
@@ -57,8 +88,7 @@ QVariant AudioDeviceModel::data(const QModelIndex &index, int role) const
     if (role == Qt::DisplayRole)
         return qfu(name);
     else if (role == Qt::CheckStateRole)
-        return QVariant::fromValue<bool>((m_current && !strcmp( m_ids[row], m_current ) ) ||
-            ( m_current == NULL && m_ids[row] && m_ids[row][0] == '\0' ) );
+        return QVariant::fromValue<bool>(std::string(m_ids[row]) == m_current);
 
     return QVariant();
 }
@@ -73,36 +103,35 @@ bool AudioDeviceModel::setData(const QModelIndex &index, const QVariant &value, 
     bool select = value.toBool();
     if (select)
     {
-        PlayerController::AoutPtr aout = p_intf->p_sys->p_mainPlayerController->getAout();
-        aout_DeviceSet( aout.get(), m_ids[row]);
+        aout_DeviceSet( aout, m_ids[row]);
     }
     return true;
 }
 
-void AudioDeviceModel::updateCurrent(const char *current)
+void AudioDeviceModel::updateCurrent(std::string current)
 {
-    if ( !strcmp( current, m_current ) )
+    if ( current == m_current)
         return;
-    const char *oldCurrent = m_current;
+    std::string oldCurrent = m_current;
     m_current = current;
 
-    int oldIndex;
-    int currentIndex;
+    int oldIndex = -1;
+    int currentIndex = -1;
 
     for(int i=0; i<m_inputs; i++ )
     {
-        if(!strcmp( m_ids[i], m_current )){
+        if( std::string(m_ids[i]) == m_current){
             currentIndex = i;
         }
-        if(!strcmp( m_ids[i], oldCurrent )){
+        if( std::string(m_ids[i]) == oldCurrent){
             oldIndex = i;
         }
     }
 
     if(oldIndex >= 0)
-        emit dataChanged(index(oldIndex), index(oldIndex), { Qt::CheckStateRole });
+        emit dataChanged(index(oldIndex), index(oldIndex), { Qt::DisplayRole, Qt::CheckStateRole });
     if(currentIndex >= 0)
-        emit dataChanged(index(currentIndex), index(currentIndex), { Qt::CheckStateRole });
+        emit dataChanged(index(currentIndex), index(currentIndex), { Qt::DisplayRole, Qt::CheckStateRole });
 }
 
 QHash<int, QByteArray> AudioDeviceModel::roleNames() const
