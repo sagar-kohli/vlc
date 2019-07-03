@@ -69,4 +69,25 @@ Utils.MenuExt {
     /* FIXME unimplemented
     extensions
     */
+
+    /*Utils.MenuExt {
+        id: extensionMenu
+        title: qsTr("&Extensions")
+
+        Repeater {
+            model: myModel
+
+            Utils.MenuItemExt {
+                text: model.modelData.color    //model.display
+                //checkable: true
+                //checked: model.modelData.color        //model.checked
+                //onTriggered: extn.fun(index)
+            }
+        }
+    }*/
+
+    /*CheckableModelSubMenu{
+        title: qsTr("&Extensions")
+        model: extn
+    }*/
 }

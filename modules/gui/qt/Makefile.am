@@ -167,6 +167,8 @@ libqt_plugin_la_SOURCES = \
 	gui/qt/components/sout/sout_widgets.cpp \
 	gui/qt/components/sout/sout_widgets.hpp \
 	gui/qt/components/sout/profiles.hpp \
+	gui/qt/components/extension_model.cpp \
+	gui/qt/components/extension_model.hpp \
 	gui/qt/util/animators.cpp gui/qt/util/animators.hpp \
 	gui/qt/util/input_slider.cpp gui/qt/util/input_slider.hpp \
 	gui/qt/util/input_models.cpp gui/qt/util/input_models.hpp \
@@ -284,6 +286,7 @@ nodist_libqt_plugin_la_SOURCES = \
 	gui/qt/components/playlist/playlist_controller.moc.cpp \
 	gui/qt/components/sout/profile_selector.moc.cpp \
 	gui/qt/components/sout/sout_widgets.moc.cpp \
+	gui/qt/components/extension_model.moc.cpp \
 	gui/qt/util/animators.moc.cpp \
 	gui/qt/util/input_slider.moc.cpp \
 	gui/qt/util/input_models.moc.cpp \
