@@ -22,8 +22,6 @@
 #include <QDebug>
 
 
-static QPixmap *loadPixmapFromData( char *, int size );
-
 ExtensionModel::ExtensionModel(extension_t *p_ext, QObject *parent)
     : QObject(parent), m_ext(p_ext)
 {
@@ -64,14 +62,9 @@ QUrl ExtensionModel::url() const
     return qfu( m_ext->psz_url );
 }
 
-QPixmap ExtensionModel::icon() const
+ExtensionManager::ExtensionManager(QObject *parent)
 {
-    return QPixmap();//loadPixmapFromData( m_ext->p_icondata, m_ext->i_icondata_size );
-}
-
-ExtensionManager::ExtensionManager(QObject *parent=0)
-{
-    EM = ExtensionsManager::getInstance(m_intf);
+    EM = ExtensionsManager::getInstance(m_mainCtx->getIntf());
 
     CONNECT( EM, extensionsUpdated(), this, updateList() );
 
@@ -81,8 +74,8 @@ ExtensionManager::ExtensionManager(QObject *parent=0)
 ExtensionManager::~ExtensionManager()
 {
     // Clear extensions list
-    while( !extensions.isEmpty() )
-        delete extensions.takeLast();
+    for(int i=0; i<extensions.size(); i++)
+        delete extensions.at(i);
 }
 
 void ExtensionManager::updateList()
@@ -91,11 +84,10 @@ void ExtensionManager::updateList()
     ExtensionModel *ext;
 
     // Clear extensions list
-    while( !extensions.isEmpty() )
-    {
-        ext = extensions.takeLast();
-        delete ext;
-    }
+    for(int i=0; i<extensions.size(); i++)
+        delete extensions.at(i);
+
+    extensions.clear();
 
     // Find new extensions
     extensions_manager_t *p_mgr = EM->getManager();
@@ -113,17 +105,17 @@ void ExtensionManager::updateList()
 
 }
 
-QList<ExtensionModel*> ExtensionManager::getExtension() const
+QList<ExtensionModel*> ExtensionManager::getExtensions()
 {
     return extensions;
 }
 
-void ExtensionManager::setIntf(intf_thread_t *intf)
+QmlMainContext* ExtensionManager::getMainCtx()
 {
-    m_intf = intf;
+    return m_mainCtx;
 }
 
-intf_thread_t*ExtensionManager::getIntf()
+void ExtensionManager::setMainCtx(QmlMainContext *ctx)
 {
-    return m_intf;
+    m_mainCtx = ctx;
 }

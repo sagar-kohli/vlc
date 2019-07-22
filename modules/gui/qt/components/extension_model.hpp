@@ -28,6 +28,7 @@
 #include <QObject>
 #include <QStringList>
 #include <vlc_extensions.h>
+#include "qml_main_context.hpp"
 
 #include <QObject>
 
@@ -38,7 +39,6 @@ class ExtensionModel : public QObject
 public:
     ExtensionModel(extension_t *p_ext, QObject *parent=0);
 
-
 private:
     extension_t *m_ext;
 
@@ -48,20 +48,15 @@ private:
     Q_PROPERTY(QString shortdes READ shortdes )
     Q_PROPERTY(QString author READ author )
     Q_PROPERTY(QString version READ version )
-    Q_PROPERTY(QPixmap icon READ icon )
     Q_PROPERTY(QUrl url READ url )
 
 public:
-    // ExtensionModel(QObject *parent=0);
-    // ExtensionModel(extension_t *p_ext);
-
     QString name() const;
     QString title() const;
     QString description() const;
     QString shortdes() const;
     QString author() const;
     QString version() const;
-    QPixmap icon() const;
     QUrl url() const;
 
 };
@@ -71,17 +66,15 @@ class ExtensionManager: public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QList extnsn READ getExtensions);
-    Q_PROPERTY(intf_thread_t *p_intfid READ getIntf SET setIntf);
+    Q_PROPERTY(QmlMainContext* mainCtx READ getMainCtx WRITE setMainCtx);
 
 public:
-    ExtensionManager(QObject *parent=0);
+    ExtensionManager(QObject *parent = nullptr);
     virtual ~ExtensionManager();
 
     QList<ExtensionModel*> getExtensions();
-    intf_thread_t* getIntf();
-    void setIntf(intf_thread_t *intf);
-
-    intf_thread_t *m_intf;
+    QmlMainContext* getMainCtx();
+    void setMainCtx(QmlMainContext*);
 
 protected slots:
     void updateList();
@@ -89,6 +82,7 @@ protected slots:
 private:
     ExtensionsManager *EM;
     QList<ExtensionModel*> extensions;
+    QmlMainContext* m_mainCtx;
     
 };
 
