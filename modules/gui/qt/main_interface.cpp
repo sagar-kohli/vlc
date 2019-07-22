@@ -378,7 +378,7 @@ void MainInterface::createMainWidget( QSettings * )
     rootCtx->setContextProperty( "rootWindow", this);
     rootCtx->setContextProperty( "dialogProvider", DialogsProvider::getInstance());
     rootCtx->setContextProperty( "recentsMedias",  new VLCRecentMediaModel( p_intf, this ));
-    rootCtx->setContextProperty( "extn", new ExtensionModel( p_intf, this));
+    rootCtx->setContextProperty( "extn", new ExtensionManager( p_intf, this));
 
     if (b_hasMedialibrary)
     {

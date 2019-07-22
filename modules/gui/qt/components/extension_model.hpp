@@ -20,9 +20,7 @@
 #define EXTENSION_MODEL_HPP
 
 #ifdef HAVE_CONFIG_H
-
 # include "config.h"
-
 #endif
 
 #include <QAbstractListModel>
@@ -31,55 +29,158 @@
 #include <QStringList>
 #include <vlc_extensions.h>
 
+#include <QObject>
 
-class ExtensionModel : public QAbstractListModel
+class ExtensionModel : public QObject
 {
-
     Q_OBJECT
 
 public:
-    /* Safe copy of the extension_t struct */
-    class ExtensionCopy
-    {
+    ExtensionModel(extension_t *p_ext, QObject *parent=0);
 
-    public:
-        ExtensionCopy( extension_t * );
-        ~ExtensionCopy();
-        QVariant data( int role ) const;
 
-    private:
-        QString name, title, description, shortdesc, author, version, url;
-        QPixmap *icon;
-    };
+private:
+    extension_t *m_ext;
 
-    ExtensionModel(intf_thread_t *p_intf, QObject *parent = nullptr );
-    virtual ~ExtensionModel();
+    Q_PROPERTY(QString name READ name )
+    Q_PROPERTY(QString title READ title )
+    Q_PROPERTY(QString description READ description )
+    Q_PROPERTY(QString shortdes READ shortdes )
+    Q_PROPERTY(QString author READ author )
+    Q_PROPERTY(QString version READ version )
+    Q_PROPERTY(QPixmap icon READ icon )
+    Q_PROPERTY(QUrl url READ url )
 
-    enum
-    {
-        SummaryRole = Qt::UserRole,
-        VersionRole,
-        AuthorRole,
-        LinkRole,
-        FilenameRole
-    };
+public:
+    // ExtensionModel(QObject *parent=0);
+    // ExtensionModel(extension_t *p_ext);
 
-    QVariant data( const QModelIndex& index, int role ) const override;
-    QModelIndex index( int row, int column = 0,
-                       const QModelIndex& = QModelIndex() ) const override;
+    QString name() const;
+    QString title() const;
+    QString description() const;
+    QString shortdes() const;
+    QString author() const;
+    QString version() const;
+    QPixmap icon() const;
+    QUrl url() const;
 
-    QHash<int, QByteArray> roleNames() const override;
-    int rowCount( const QModelIndex& = QModelIndex() ) const override;
+};
+
+
+class ExtensionManager: public QObject
+{
+    Q_OBJECT
+
+public:
+    ExtensionManager(intf_thread_t *p_intf, QObject *parent=0);
+    virtual ~ExtensionManager();
+
+    QList<ExtensionModel*> extensions;
 
 protected slots:
     void updateList();
-    Q_INVOKABLE void fun(int row);
 
 private:
     ExtensionsManager *EM;
-    QList<ExtensionCopy*> extensions;
 };
 
 #endif // EXTENSION_LIST_MODEL_HPP
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // void setName(const QString &name);
+    // void setTitle(const QString &name);
+//     void setDescription(const QString &name);
+//     void setShortdes(const QString &name);
+//     void setAuthor(const QString &name);
+//     void setVersion(const QString &name);
+//     void setIcon(const QString &name);
+//     void setUrl(const QString &name);
+
+
+
+
+
+// signals:
+    // void nameChanged();
+    // void titleChanged();
+    // void descriptionChanged();
+//     void shortdesChanged();
+//     void authorChanged();
+//     void versionChanged();
+//     void iconChanged();
+//     void urlChanged();
+
+// private:
+//     QString m_name, m_title, m_description, m_shortdes, m_author, m_version;
+//     QPixmap *m_icon;
+//     QUrl m_url;
+// };
+
+
+
+
+
+// class ExtensionModel : public QAbstractListModel
+// {
+
+//     Q_OBJECT
+
+// public:
+//     /* Safe copy of the extension_t struct */
+//     class ExtensionCopy
+//     {
+
+//     public:
+//         ExtensionCopy( extension_t * );
+//         ~ExtensionCopy();
+//         QVariant data( int role ) const;
+
+//     private:
+//         QString name, title, description, shortdesc, author, version, url;
+//         QPixmap *icon;
+//     };
+
+    // ExtensionModel(intf_thread_t *p_intf, QObject *parent = nullptr );
+    // virtual ~ExtensionModel();
+
+//     enum
+//     {
+//         SummaryRole = Qt::UserRole,
+//         VersionRole,
+//         AuthorRole,
+//         LinkRole,
+//         FilenameRole
+//     };
+
+//     QVariant data( const QModelIndex& index, int role ) const override;
+//     QModelIndex index( int row, int column = 0,
+//                        const QModelIndex& = QModelIndex() ) const override;
+
+//     QHash<int, QByteArray> roleNames() const override;
+//     int rowCount( const QModelIndex& = QModelIndex() ) const override;
+
+// protected slots:
+//     void updateList();
+//     Q_INVOKABLE void fun(int row);
+
+// private:
+//     ExtensionsManager *EM;
+//     QList<ExtensionCopy*> extensions;
+// };
+
+// #endif // EXTENSION_LIST_MODEL_HPP
 
 

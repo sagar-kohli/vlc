@@ -70,21 +70,21 @@ Utils.MenuExt {
     extensions
     */
 
-    Utils.MenuExt {
+    /*Utils.MenuExt {
         id: extensionMenu
         title: qsTr("&Extensions")
 
         Repeater {
-            model: extn
+            model: myModel
 
             Utils.MenuItemExt {
-                text: model.display
-                checkable: true
-                checked: model.checked
-                onTriggered: extn.fun(index)
+                text: model.modelData.color    //model.display
+                //checkable: true
+                //checked: model.modelData.color        //model.checked
+                //onTriggered: extn.fun(index)
             }
         }
-    }
+    }*/
 
     /*CheckableModelSubMenu{
         title: qsTr("&Extensions")

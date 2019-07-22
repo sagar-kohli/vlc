@@ -19,194 +19,292 @@
 #include "extension_model.hpp"
 #include <QPixmap>
 
-#define MENU_GET_EXTENSION(a) ( (uint16_t)( ((uint32_t)a) & 0xFFFF ) )
+#include <QDebug>
+
 
 static QPixmap *loadPixmapFromData( char *, int size );
 
-
-
-/* Safe copy of the extension_t struct */
-ExtensionModel::ExtensionCopy::ExtensionCopy( extension_t *p_ext )
+ExtensionModel::ExtensionModel(extension_t *p_ext, QObject *parent)
+    : QObject(parent), m_ext(p_ext)
 {
-    name = qfu( p_ext->psz_name );
-    description = qfu( p_ext->psz_description );
-    shortdesc = qfu( p_ext->psz_shortdescription );
-    if( description.isEmpty() )
-        description = shortdesc;
-    if( shortdesc.isEmpty() && !description.isEmpty() )
-        shortdesc = description;
-    title = qfu( p_ext->psz_title );
-    author = qfu( p_ext->psz_author );
-    version = qfu( p_ext->psz_version );
-    url = qfu( p_ext->psz_url );
-    icon = loadPixmapFromData( p_ext->p_icondata, p_ext->i_icondata_size );
 }
 
-ExtensionModel::ExtensionCopy::~ExtensionCopy()
+QString ExtensionModel::name() const
 {
-    delete icon;
+    return qfu( m_ext->psz_name );
 }
 
-QVariant ExtensionModel::ExtensionCopy::data( int role ) const
+QString ExtensionModel::title() const
 {
-    switch( role )
-    {
-    case Qt::DisplayRole:
-        return title;
-    case Qt::DecorationRole:
-        if ( !icon ) return QPixmap( ":/logo/vlc48.png" );
-        return *icon;
-    case Qt::CheckStateRole:
-        return QVariant::fromValue<bool>(true);
-    case SummaryRole:
-        return shortdesc;
-    case VersionRole:
-        return version;
-    case AuthorRole:
-        return author;
-    case LinkRole:
-        return url;
-    case FilenameRole:
-        return name;
-    default:
-        return QVariant();
-    }
+    return qfu( m_ext->psz_title );
 }
 
-ExtensionModel::ExtensionModel( intf_thread_t *p_intf, QObject *parent )
-        : QAbstractListModel( parent )
+QString ExtensionModel::description() const
 {
+    return qfu( m_ext->psz_description );
+}
 
+QString ExtensionModel::shortdes() const
+{
+    return qfu( m_ext->psz_shortdescription );
+}
+
+QString ExtensionModel::author() const
+{
+    return qfu( m_ext->psz_author );
+}
+
+QString ExtensionModel::version() const
+{
+    return qfu( m_ext->psz_version );
+}
+
+QUrl ExtensionModel::url() const
+{
+    return qfu( m_ext->psz_url );
+}
+
+QPixmap ExtensionModel::icon() const
+{
+    return QPixmap();//loadPixmapFromData( m_ext->p_icondata, m_ext->i_icondata_size );
+}
+
+ExtensionManager::ExtensionManager(intf_thread_t *p_intf, QObject *parent=0)
+{
     EM = ExtensionsManager::getInstance(p_intf);
 
-    // Connect to ExtensionsManager::extensionsUpdated()
     CONNECT( EM, extensionsUpdated(), this, updateList() );
 
-    // Load extensions now if not already loaded
     EM->loadExtensions();
 }
 
-ExtensionModel::~ExtensionModel()
+ExtensionManager::~ExtensionManager()
 {
     // Clear extensions list
     while( !extensions.isEmpty() )
         delete extensions.takeLast();
 }
 
-void ExtensionModel::updateList()
+void ExtensionManager::updateList()
 {
-    ExtensionCopy *ext;
 
-    // Clear extensions list
-    while( !extensions.isEmpty() )
-    {
-        ext = extensions.takeLast();
-        delete ext;
-    }
+        ExtensionModel *ext;
 
-    // Find new extensions
-    extensions_manager_t *p_mgr = EM->getManager();
-    if( !p_mgr )
-        return;
+        // Clear extensions list
+        while( !extensions.isEmpty() )
+        {
+            ext = extensions.takeLast();
+            delete ext;
+        }
 
-    vlc_mutex_lock( &p_mgr->lock );
-    extension_t *p_ext;
-    ARRAY_FOREACH( p_ext, p_mgr->extensions )
-    {
-        ext = new ExtensionCopy( p_ext );
-        extensions.append( ext );
-    }
-    vlc_mutex_unlock( &p_mgr->lock );
+        // Find new extensions
+        extensions_manager_t *p_mgr = EM->getManager();
+        if( !p_mgr )
+            return;
 
-    emit dataChanged( index( 0 ), index( rowCount() - 1 ) );
+        vlc_mutex_lock( &p_mgr->lock );
+        extension_t *p_ext;
+        ARRAY_FOREACH( p_ext, p_mgr->extensions )
+        {
+            ext = new ExtensionModel( p_ext, this );
+            extensions.append( ext );
+        }
+        vlc_mutex_unlock( &p_mgr->lock );
+
+    // emit dataChanged( index( 0 ), index( rowCount() - 1 ) );
 }
 
-int ExtensionModel::rowCount( const QModelIndex& ) const
-{
-    int count = 0;
-    extensions_manager_t *p_mgr = EM->getManager();
-    if( !p_mgr )
-        return 0;
 
-    vlc_mutex_lock( &p_mgr->lock );
-    count = p_mgr->extensions.i_size;
-    vlc_mutex_unlock( &p_mgr->lock );
 
-    return count;
-}
 
-QHash<int, QByteArray> ExtensionModel::roleNames() const
-{
-    QHash<int, QByteArray> roleNames;
-    roleNames.insert(Qt::DisplayRole, "display");
-    roleNames.insert(Qt::CheckStateRole, "checked");
-    return roleNames;
-}
+// #define MENU_GET_EXTENSION(a) ( (uint16_t)( ((uint32_t)a) & 0xFFFF ) )
 
-void ExtensionModel::fun(int row)
-{
+// static QPixmap *loadPixmapFromData( char *, int size );
 
-    uint16_t i_ext = MENU_GET_EXTENSION( row );
 
-    // printf("*******************%d\n", i_ext);
 
-    extensions_manager_t *p_mgr = EM->getManager();
+// /* Safe copy of the extension_t struct */
+// ExtensionModel::ExtensionCopy::ExtensionCopy( extension_t *p_ext )
+// {
+//     name = qfu( p_ext->psz_name );
+//     description = qfu( p_ext->psz_description );
+//     shortdesc = qfu( p_ext->psz_shortdescription );
+//     if( description.isEmpty() )
+//         description = shortdesc;
+//     if( shortdesc.isEmpty() && !description.isEmpty() )
+//         shortdesc = description;
+//     title = qfu( p_ext->psz_title );
+//     author = qfu( p_ext->psz_author );
+//     version = qfu( p_ext->psz_version );
+//     url = qfu( p_ext->psz_url );
+//     icon = loadPixmapFromData( p_ext->p_icondata, p_ext->i_icondata_size );
+// }
 
-    vlc_mutex_lock( &p_mgr->lock );
+// ExtensionModel::ExtensionCopy::~ExtensionCopy()
+// {
+//     delete icon;
+// }
 
-    extension_t *p_ext = ARRAY_VAL( p_mgr->extensions, i_ext );
-    assert( p_ext != NULL);
+// QVariant ExtensionModel::ExtensionCopy::data( int role ) const
+// {
+//     switch( role )
+//     {
+//     case Qt::DisplayRole:
+//         return title;
+//     case Qt::DecorationRole:
+//         if ( !icon ) return QPixmap( ":/logo/vlc48.png" );
+//         return *icon;
+//     case Qt::CheckStateRole:
+//         return QVariant::fromValue<bool>(true);
+//     case SummaryRole:
+//         return shortdesc;
+//     case VersionRole:
+//         return version;
+//     case AuthorRole:
+//         return author;
+//     case LinkRole:
+//         return url;
+//     case FilenameRole:
+//         return name;
+//     default:
+//         return QVariant();
+//     }
+// }
 
-    vlc_mutex_unlock( &p_mgr->lock );
+// ExtensionModel::ExtensionModel( intf_thread_t *p_intf, QObject *parent )
+//         : QAbstractListModel( parent )
+// {
 
-    if( extension_TriggerOnly( p_mgr, p_ext ) )
-    {
-        extension_Trigger( p_mgr, p_ext );
-    }
-    else
-    {
-        if( !extension_IsActivated( p_mgr, p_ext ) )
-            extension_Activate( p_mgr, p_ext );
-        else
-            extension_Deactivate( p_mgr, p_ext );
-    }
+//     EM = ExtensionsManager::getInstance(p_intf);
+
+//     // Connect to ExtensionsManager::extensionsUpdated()
+//     CONNECT( EM, extensionsUpdated(), this, updateList() );
+
+//     // Load extensions now if not already loaded
+//     EM->loadExtensions();
+// }
+
+// ExtensionModel::~ExtensionModel()
+// {
+//     // Clear extensions list
+//     while( !extensions.isEmpty() )
+//         delete extensions.takeLast();
+// }
+
+// void ExtensionModel::updateList()
+// {
+//     ExtensionCopy *ext;
+
+//     // Clear extensions list
+//     while( !extensions.isEmpty() )
+//     {
+//         ext = extensions.takeLast();
+//         delete ext;
+//     }
+
+//     // Find new extensions
+//     extensions_manager_t *p_mgr = EM->getManager();
+//     if( !p_mgr )
+//         return;
+
+//     vlc_mutex_lock( &p_mgr->lock );
+//     extension_t *p_ext;
+//     ARRAY_FOREACH( p_ext, p_mgr->extensions )
+//     {
+//         ext = new ExtensionCopy( p_ext );
+//         extensions.append( ext );
+//     }
+//     vlc_mutex_unlock( &p_mgr->lock );
+
+//     emit dataChanged( index( 0 ), index( rowCount() - 1 ) );
+// }
+
+// int ExtensionModel::rowCount( const QModelIndex& ) const
+// {
+//     int count = 0;
+//     extensions_manager_t *p_mgr = EM->getManager();
+//     if( !p_mgr )
+//         return 0;
+
+//     vlc_mutex_lock( &p_mgr->lock );
+//     count = p_mgr->extensions.i_size;
+//     vlc_mutex_unlock( &p_mgr->lock );
+
+//     return count;
+// }
+
+// QHash<int, QByteArray> ExtensionModel::roleNames() const
+// {
+//     QHash<int, QByteArray> roleNames;
+//     roleNames.insert(Qt::DisplayRole, "display");
+//     roleNames.insert(Qt::CheckStateRole, "checked");
+//     return roleNames;
+// }
+
+// void ExtensionModel::fun(int row)
+// {
+
+//     uint16_t i_ext = MENU_GET_EXTENSION( row );
+
+//     // printf("*******************%d\n", i_ext);
+
+//     extensions_manager_t *p_mgr = EM->getManager();
+
+//     vlc_mutex_lock( &p_mgr->lock );
+
+//     extension_t *p_ext = ARRAY_VAL( p_mgr->extensions, i_ext );
+//     assert( p_ext != NULL);
+
+//     vlc_mutex_unlock( &p_mgr->lock );
+
+//     if( extension_TriggerOnly( p_mgr, p_ext ) )
+//     {
+//         extension_Trigger( p_mgr, p_ext );
+//     }
+//     else
+//     {
+//         if( !extension_IsActivated( p_mgr, p_ext ) )
+//             extension_Activate( p_mgr, p_ext );
+//         else
+//             extension_Deactivate( p_mgr, p_ext );
+//     }
             
-}
+// }
 
-QVariant ExtensionModel::data( const QModelIndex& index, int role ) const
-{
-    if( !index.isValid() )
-        return QVariant();
+// QVariant ExtensionModel::data( const QModelIndex& index, int role ) const
+// {
+//     if( !index.isValid() )
+//         return QVariant();
 
-    ExtensionCopy * extension =
-            static_cast<ExtensionCopy *>(index.internalPointer());
-    if ( !extension )
-        return QVariant();
-    else
-        return extension->data( role );
-}
+//     ExtensionCopy * extension =
+//             static_cast<ExtensionCopy *>(index.internalPointer());
+//     if ( !extension )
+//         return QVariant();
+//     else
+//         return extension->data( role );
+// }
 
-QModelIndex ExtensionModel::index( int row, int column,
-                                       const QModelIndex& ) const
-{
-    if( column != 0 )
-        return QModelIndex();
-    if( row < 0 || row >= extensions.count() )
-        return QModelIndex();
+// QModelIndex ExtensionModel::index( int row, int column,
+//                                        const QModelIndex& ) const
+// {
+//     if( column != 0 )
+//         return QModelIndex();
+//     if( row < 0 || row >= extensions.count() )
+//         return QModelIndex();
 
-    return createIndex( row, 0, extensions.at( row ) );
-}
+//     return createIndex( row, 0, extensions.at( row ) );
+// }
 
 
-static QPixmap *loadPixmapFromData( char *data, int size )
-{
-    if( !data || size <= 0 )
-        return NULL;
-    QPixmap *pixmap = new QPixmap();
-    if( !pixmap->loadFromData( (const uchar*) data, (uint) size ) )
-    {
-        delete pixmap;
-        return NULL;
-    }
-    return pixmap;
-}
+// static QPixmap *loadPixmapFromData( char *data, int size )
+// {
+//     if( !data || size <= 0 )
+//         return NULL;
+//     QPixmap *pixmap = new QPixmap();
+//     if( !pixmap->loadFromData( (const uchar*) data, (uint) size ) )
+//     {
+//         delete pixmap;
+//         return NULL;
+//     }
+//     return pixmap;
+// }
