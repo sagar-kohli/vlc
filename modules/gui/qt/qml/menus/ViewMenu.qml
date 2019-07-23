@@ -18,6 +18,8 @@
 import QtQuick 2.11
 import QtQuick.Controls 2.4
 
+import org.videolan.vlc 0.1
+
 import "qrc:///style/"
 import "qrc:///utils/" as Utils
 
@@ -70,21 +72,23 @@ Utils.MenuExt {
     extensions
     */
 
-    /*Utils.MenuExt {
+    Utils.MenuExt {
+
         id: extensionMenu
         title: qsTr("&Extensions")
 
+        property var extnmanager: ExtensionManager {
+            mainCtx: mainctx
+        }
+
         Repeater {
-            model: myModel
+            model: extensionMenu.extnmanager.extnsn
 
             Utils.MenuItemExt {
-                text: model.modelData.color    //model.display
-                //checkable: true
-                //checked: model.modelData.color        //model.checked
-                //onTriggered: extn.fun(index)
+                text: modelData.name
             }
         }
-    }*/
+    }
 
     /*CheckableModelSubMenu{
         title: qsTr("&Extensions")

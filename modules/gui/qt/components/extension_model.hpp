@@ -29,18 +29,13 @@
 #include <QStringList>
 #include <vlc_extensions.h>
 #include "qml_main_context.hpp"
-
+#include <QUrl>
 #include <QObject>
+#include <QList>
 
 class ExtensionModel : public QObject
 {
     Q_OBJECT
-
-public:
-    ExtensionModel(extension_t *p_ext, QObject *parent=0);
-
-private:
-    extension_t *m_ext;
 
     Q_PROPERTY(QString name READ name )
     Q_PROPERTY(QString title READ title )
@@ -50,7 +45,12 @@ private:
     Q_PROPERTY(QString version READ version )
     Q_PROPERTY(QUrl url READ url )
 
+private:
+    extension_t *m_ext;
+
 public:
+    ExtensionModel(extension_t *p_ext, QObject *parent=0);
+
     QString name() const;
     QString title() const;
     QString description() const;
@@ -61,18 +61,17 @@ public:
 
 };
 
-
 class ExtensionManager: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QList extnsn READ getExtensions);
+    Q_PROPERTY(QList<ExtensionModel*> extnsn READ getExtensions);
     Q_PROPERTY(QmlMainContext* mainCtx READ getMainCtx WRITE setMainCtx);
 
 public:
     ExtensionManager(QObject *parent = nullptr);
     virtual ~ExtensionManager();
 
-    QList<ExtensionModel*> getExtensions();
+    QList<ExtensionModel*> getExtensions() const;
     QmlMainContext* getMainCtx();
     void setMainCtx(QmlMainContext*);
 

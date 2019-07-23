@@ -64,18 +64,22 @@ QUrl ExtensionModel::url() const
 
 ExtensionManager::ExtensionManager(QObject *parent)
 {
-    EM = ExtensionsManager::getInstance(m_mainCtx->getIntf());
+    if(m_mainCtx)
+    {
 
-    CONNECT( EM, extensionsUpdated(), this, updateList() );
+        EM = ExtensionsManager::getInstance(m_mainCtx->getIntf());
 
-    EM->loadExtensions();
+        CONNECT( EM, extensionsUpdated(), this, updateList() );
+
+        EM->loadExtensions();
+    }
 }
 
 ExtensionManager::~ExtensionManager()
 {
     // Clear extensions list
-    for(int i=0; i<extensions.size(); i++)
-        delete extensions.at(i);
+    for(auto extension: extensions)
+        delete extension;
 }
 
 void ExtensionManager::updateList()
@@ -84,8 +88,8 @@ void ExtensionManager::updateList()
     ExtensionModel *ext;
 
     // Clear extensions list
-    for(int i=0; i<extensions.size(); i++)
-        delete extensions.at(i);
+    for(auto extension: extensions)
+        delete extension;
 
     extensions.clear();
 
@@ -102,20 +106,23 @@ void ExtensionManager::updateList()
         extensions.append( ext );
     }
     vlc_mutex_unlock( &p_mgr->lock );
-
 }
 
-QList<ExtensionModel*> ExtensionManager::getExtensions()
+QList<ExtensionModel*> ExtensionManager::getExtensions() const
 {
     return extensions;
 }
 
 QmlMainContext* ExtensionManager::getMainCtx()
 {
-    return m_mainCtx;
+    if(m_mainCtx)    
+        return m_mainCtx;
+    else 
+        return nullptr;
 }
 
 void ExtensionManager::setMainCtx(QmlMainContext *ctx)
 {
-    m_mainCtx = ctx;
+    if(ctx)
+        m_mainCtx = ctx;
 }
