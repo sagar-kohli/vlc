@@ -33,6 +33,26 @@
 #include <QObject>
 #include <QList>
 
+class ExtensionSubModel : public QAbstractListModel
+{
+    Q_OBJECT
+
+public:
+    ExtensionSubModel(extensions_manager_t *p_ext_mgr, extension_t *p_ex, QObject *parent = nullptr);
+    ~ExtensionSubModel();
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+
+    QHash<int, QByteArray> roleNames() const override;
+private:
+    char **ppsz_titles = NULL;
+    uint16_t *pi_ids = NULL;
+    int ppsz_titles_size = 0;
+};
+
+
 class ExtensionModel : public QObject
 {
     Q_OBJECT
@@ -64,16 +84,19 @@ public:
 class ExtensionManager: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QList<ExtensionModel*> extnsn READ getExtensions);
+    Q_PROPERTY(QList<ExtensionModel*> extnsn READ getExtensions NOTIFY extensionsChanged);
     Q_PROPERTY(QmlMainContext* mainCtx READ getMainCtx WRITE setMainCtx);
 
 public:
     ExtensionManager(QObject *parent = nullptr);
     virtual ~ExtensionManager();
 
-    QList<ExtensionModel*> getExtensions() const;
+    const QList<ExtensionModel*> getExtensions();
     QmlMainContext* getMainCtx();
     void setMainCtx(QmlMainContext*);
+
+signals:
+    void extensionsChanged();
 
 protected slots:
     void updateList();

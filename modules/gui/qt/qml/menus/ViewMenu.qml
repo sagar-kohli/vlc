@@ -72,21 +72,39 @@ Utils.MenuExt {
     extensions
     */
 
-    Utils.MenuExt {
+    /*Utils.MenuExt {
 
         id: extensionMenu
         title: qsTr("&Extensions")
 
         property var extnmanager: ExtensionManager {
             mainCtx: mainctx
+            property var modl
+            onExtensionsChanged:{
+                modl: extnsn
+            }
         }
 
         Repeater {
-            model: extensionMenu.extnmanager.extnsn
+            model: extensionMenu.extnmanager.modl
 
             Utils.MenuItemExt {
-                text: modelData.name
+                text: model.modelData.name
             }
+        }
+    }*/
+
+    ExtensionManager {
+        id: extensionMgr
+        mainCtx: mainctx
+        onExtensionsChanged:{
+            print("Extension changed")
+        }
+    }
+    Repeater {
+        model: extensionMgr.extnsn
+        Utils.MenuItemExt {
+            text: name
         }
     }
 

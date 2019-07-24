@@ -21,6 +21,58 @@
 
 #include <QDebug>
 
+ExtensionSubModel::ExtensionSubModel(extensions_manager_t *p_ext_mgr, extension_t *p_ex, QObject *parent)
+    : QAbstractListModel(parent)
+{   
+    if( extension_GetMenu( p_ext_mgr, p_ex, &ppsz_titles, &pi_ids ) == VLC_SUCCESS )
+    {
+        for (int i=0; ppsz_titles[i]!=NULL; i++)
+            ppsz_titles_size++;
+    }
+}
+
+ExtensionSubModel::~ExtensionSubModel()
+{
+    if(ppsz_titles_size > 0)
+    {
+        for(int i=0; ppsz_titles[i] !=NULL; ++i){
+            free(ppsz_titles[i]);
+        }
+
+        free(ppsz_titles);
+        free(pi_ids);
+    }
+}
+
+int ExtensionSubModel::rowCount(const QModelIndex &parent) const
+{
+    if (parent.isValid())
+        return 0;
+
+    return ppsz_titles_size;
+}
+
+QVariant ExtensionSubModel::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid())
+        return QVariant();
+    int row = index.row();
+    if (row < 0 || row >= ppsz_titles_size)
+        return QVariant();
+
+    const char *title = ppsz_titles[row];
+    if (role == Qt::DisplayRole)
+        return qfu(title);
+
+    return QVariant();
+}
+
+QHash<int, QByteArray> ExtensionSubModel::roleNames() const
+{
+    return QHash<int, QByteArray>{
+        {Qt::DisplayRole, "display"}
+    };
+}
 
 ExtensionModel::ExtensionModel(extension_t *p_ext, QObject *parent)
     : QObject(parent), m_ext(p_ext)
@@ -62,17 +114,8 @@ QUrl ExtensionModel::url() const
     return qfu( m_ext->psz_url );
 }
 
-ExtensionManager::ExtensionManager(QObject *parent)
+ExtensionManager::ExtensionManager(QObject *)
 {
-    if(m_mainCtx)
-    {
-
-        EM = ExtensionsManager::getInstance(m_mainCtx->getIntf());
-
-        CONNECT( EM, extensionsUpdated(), this, updateList() );
-
-        EM->loadExtensions();
-    }
 }
 
 ExtensionManager::~ExtensionManager()
@@ -84,7 +127,6 @@ ExtensionManager::~ExtensionManager()
 
 void ExtensionManager::updateList()
 {
-
     ExtensionModel *ext;
 
     // Clear extensions list
@@ -106,16 +148,18 @@ void ExtensionManager::updateList()
         extensions.append( ext );
     }
     vlc_mutex_unlock( &p_mgr->lock );
+
+    emit extensionsChanged();
 }
 
-QList<ExtensionModel*> ExtensionManager::getExtensions() const
+const QList<ExtensionModel*> ExtensionManager::getExtensions()
 {
     return extensions;
 }
 
 QmlMainContext* ExtensionManager::getMainCtx()
 {
-    if(m_mainCtx)    
+    if(m_mainCtx != nullptr)    
         return m_mainCtx;
     else 
         return nullptr;
@@ -123,6 +167,8 @@ QmlMainContext* ExtensionManager::getMainCtx()
 
 void ExtensionManager::setMainCtx(QmlMainContext *ctx)
 {
-    if(ctx)
-        m_mainCtx = ctx;
+    m_mainCtx = ctx;
+    EM = ExtensionsManager::getInstance(m_mainCtx->getIntf());
+    CONNECT( EM, extensionsUpdated(), this, updateList() );
+    EM->loadExtensions();
 }
