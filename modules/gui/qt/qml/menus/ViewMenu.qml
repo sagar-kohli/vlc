@@ -97,14 +97,12 @@ Utils.MenuExt {
     ExtensionManager {
         id: extensionMgr
         mainCtx: mainctx
-        onExtensionsChanged:{
-            print("Extension changed")
-        }
     }
     Repeater {
         model: extensionMgr.extnsn
         Utils.MenuItemExt {
-            text: name
+            text: title
+            onTriggered: extensionMgr.activate(index)
         }
     }
 

@@ -25,6 +25,7 @@
 
 #include <QAbstractListModel>
 #include "extensions_manager.hpp"
+#include <QQmlListProperty>
 #include <QObject>
 #include <QStringList>
 #include <vlc_extensions.h>
@@ -84,22 +85,20 @@ public:
 class ExtensionManager: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QList<ExtensionModel*> extnsn READ getExtensions NOTIFY extensionsChanged);
+    Q_PROPERTY(QQmlListProperty<ExtensionModel> extnsn READ getExtensions);
     Q_PROPERTY(QmlMainContext* mainCtx READ getMainCtx WRITE setMainCtx);
 
 public:
     ExtensionManager(QObject *parent = nullptr);
     virtual ~ExtensionManager();
 
-    const QList<ExtensionModel*> getExtensions();
+    QQmlListProperty<ExtensionModel> getExtensions();
     QmlMainContext* getMainCtx();
     void setMainCtx(QmlMainContext*);
 
-signals:
-    void extensionsChanged();
-
 protected slots:
     void updateList();
+    Q_INVOKABLE void activate(int row);
 
 private:
     ExtensionsManager *EM;

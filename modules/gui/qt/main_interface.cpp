@@ -360,6 +360,7 @@ void MainInterface::createMainWidget( QSettings * )
 
     qmlRegisterType<QmlEventFilter>( "org.videolan.vlc", 0, 1, "EventFilter" );
     qmlRegisterType<ExtensionManager>( "org.videolan.vlc", 0, 1, "ExtensionManager");
+    qmlRegisterUncreatableType<ExtensionModel>( "org.videolan.vlc", 0, 1, "ExtensionModel", "");
 
 
     mediacenterView = new QQuickWidget(this);

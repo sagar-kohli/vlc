@@ -149,20 +149,42 @@ void ExtensionManager::updateList()
     }
     vlc_mutex_unlock( &p_mgr->lock );
 
-    emit extensionsChanged();
 }
 
-const QList<ExtensionModel*> ExtensionManager::getExtensions()
+void ExtensionManager::activate(int row)
 {
-    return extensions;
+    uint16_t i_ext = (uint16_t)row;
+
+    extensions_manager_t *p_mgr = EM->getManager();
+
+    vlc_mutex_lock( &p_mgr->lock );
+
+    extension_t *p_ext = ARRAY_VAL( p_mgr->extensions, i_ext );
+    assert( p_ext != NULL);
+
+    vlc_mutex_unlock( &p_mgr->lock );
+
+    if( extension_TriggerOnly( p_mgr, p_ext ) )
+    {
+        extension_Trigger( p_mgr, p_ext );
+    }
+    else
+    {
+        if( !extension_IsActivated( p_mgr, p_ext ) )
+            extension_Activate( p_mgr, p_ext );
+        else
+            extension_Deactivate( p_mgr, p_ext );
+    }
+}
+
+QQmlListProperty<ExtensionModel> ExtensionManager::getExtensions()
+{
+    return QQmlListProperty<ExtensionModel>(this, extensions);
 }
 
 QmlMainContext* ExtensionManager::getMainCtx()
 {
-    if(m_mainCtx != nullptr)    
-        return m_mainCtx;
-    else 
-        return nullptr;
+    return m_mainCtx;
 }
 
 void ExtensionManager::setMainCtx(QmlMainContext *ctx)
