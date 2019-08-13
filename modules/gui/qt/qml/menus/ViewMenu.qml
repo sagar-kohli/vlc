@@ -17,6 +17,7 @@
  *****************************************************************************/
 import QtQuick 2.11
 import QtQuick.Controls 2.4
+import org.videolan.vlc 0.1
 
 import "qrc:///style/"
 import "qrc:///utils/" as Utils
@@ -78,6 +79,18 @@ Utils.MenuExt {
     }
 
     /* FIXME unimplemented
-    extensions
+    sub-extensions menu
     */
+
+    ExtensionManager {
+        id: extensionMgr
+        mainCtx: mainctx
+    }
+    Repeater {
+        model: extensionMgr.extensions
+        Utils.MenuItemExt {
+            text: title
+            onTriggered: extensionMgr.activate(index)
+        }
+    }
 }
