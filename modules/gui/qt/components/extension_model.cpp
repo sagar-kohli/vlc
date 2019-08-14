@@ -121,9 +121,19 @@ void ExtensionManager::activate(int row)
     }
 }
 
+int itemSize(QQmlListProperty<ExtensionModel> *property)
+{
+    return static_cast< QList<ExtensionModel *> *>(property->data)->size();
+}
+
+ExtensionModel *itemAt(QQmlListProperty<ExtensionModel> *property, int index)
+{
+    return static_cast< QList<ExtensionModel *> *>(property->data)->at(index);
+}
+
 QQmlListProperty<ExtensionModel> ExtensionManager::getExtensions()
 {
-    return QQmlListProperty<ExtensionModel>(this, extensionsList);
+    return QQmlListProperty<ExtensionModel>(this, &extensionsList, &itemSize, &itemAt);
 }
 
 QmlMainContext* ExtensionManager::getMainCtx()
