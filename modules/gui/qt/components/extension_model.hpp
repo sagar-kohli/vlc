@@ -33,26 +33,6 @@
 #include <QObject>
 #include <QList>
 
-class ExtensionSubModel : public QAbstractListModel
-{
-    Q_OBJECT
-
-public:
-    ExtensionSubModel(extensions_manager_t *p_ext_mgr, extension_t *p_ex, QObject *parent = nullptr);
-    ~ExtensionSubModel();
-
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-
-    QHash<int, QByteArray> roleNames() const override;
-private:
-    char **m_ppsz_titles = NULL;
-    uint16_t *m_pi_ids = NULL;
-    int m_ppsz_titles_size = 0;
-};
-
-
 class ExtensionModel : public QObject
 {
     Q_OBJECT

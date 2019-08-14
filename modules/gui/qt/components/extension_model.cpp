@@ -18,59 +18,6 @@
 
 #include "extension_model.hpp"
 
-ExtensionSubModel::ExtensionSubModel(extensions_manager_t *p_ext_mgr, extension_t *p_ex, QObject *parent)
-    : QAbstractListModel(parent)
-{   
-    if( extension_GetMenu( p_ext_mgr, p_ex, &m_ppsz_titles, &m_pi_ids ) == VLC_SUCCESS )
-    {
-        for (int i=0; m_ppsz_titles[i]!=NULL; i++)
-            m_ppsz_titles_size++;
-    }
-}
-
-ExtensionSubModel::~ExtensionSubModel()
-{
-    if(m_ppsz_titles_size > 0)
-    {
-        for(int i=0; m_ppsz_titles[i] !=NULL; ++i){
-            free(m_ppsz_titles[i]);
-        }
-
-        free(m_ppsz_titles);
-        free(m_pi_ids);
-    }
-}
-
-int ExtensionSubModel::rowCount(const QModelIndex &parent) const
-{
-    if (parent.isValid())
-        return 0;
-
-    return m_ppsz_titles_size;
-}
-
-QVariant ExtensionSubModel::data(const QModelIndex &index, int role) const
-{
-    if (!index.isValid())
-        return QVariant();
-    int row = index.row();
-    if (row < 0 || row >= m_ppsz_titles_size)
-        return QVariant();
-
-    const char *title = m_ppsz_titles[row];
-    if (role == Qt::DisplayRole)
-        return qfu(title);
-
-    return QVariant();
-}
-
-QHash<int, QByteArray> ExtensionSubModel::roleNames() const
-{
-    return QHash<int, QByteArray>{
-        {Qt::DisplayRole, "display"}
-    };
-}
-
 ExtensionModel::ExtensionModel(extension_t *p_ext, QObject *parent)
     : QObject(parent), m_ext(p_ext)
 {
