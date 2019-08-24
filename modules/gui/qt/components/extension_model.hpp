@@ -73,6 +73,7 @@ public:
 
     QQmlListProperty<ExtensionModel> getExtensions();
     QmlMainContext* getMainCtx();
+    std::vector<std::unique_ptr<ExtensionModel>> extensionsList;
     void setMainCtx(QmlMainContext*);
 
 protected slots:
@@ -81,7 +82,6 @@ protected slots:
 
 private:
     ExtensionsManager *EM;
-    QList<ExtensionModel*> extensionsList;
     QmlMainContext* m_mainCtx;
     
 };

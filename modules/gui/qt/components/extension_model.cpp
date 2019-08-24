@@ -65,17 +65,13 @@ ExtensionManager::ExtensionManager(QObject *)
 ExtensionManager::~ExtensionManager()
 {
     // Clear extensions list
-    for(auto extension: extensionsList)
-        delete extension;
+
+    extensionsList.clear();
 }
 
 void ExtensionManager::updateList()
 {
-    ExtensionModel *ext;
-
     // Clear extensions list
-    for(auto extension: extensionsList)
-        delete extension;
 
     extensionsList.clear();
 
@@ -84,14 +80,12 @@ void ExtensionManager::updateList()
     if( !p_mgr )
         return;
 
-    vlc_mutex_lock( &p_mgr->lock );
+    vlc_mutex_locker lock( &p_mgr->lock );
     extension_t *p_ext;
     ARRAY_FOREACH( p_ext, p_mgr->extensions )
     {
-        ext = new ExtensionModel( p_ext, this );
-        extensionsList.append( ext );
+        extensionsList.emplace_back( std::unique_ptr<ExtensionModel> {new ExtensionModel( p_ext, this ) } );
     }
-    vlc_mutex_unlock( &p_mgr->lock );
 
 }
 
@@ -101,12 +95,10 @@ void ExtensionManager::activate(int row)
 
     extensions_manager_t *p_mgr = EM->getManager();
 
-    vlc_mutex_lock( &p_mgr->lock );
+    vlc_mutex_locker lock( &p_mgr->lock );
 
     extension_t *p_ext = ARRAY_VAL( p_mgr->extensions, i_ext );
     assert( p_ext != NULL);
-
-    vlc_mutex_unlock( &p_mgr->lock );
 
     if( extension_TriggerOnly( p_mgr, p_ext ) )
     {
@@ -123,17 +115,20 @@ void ExtensionManager::activate(int row)
 
 int itemSize(QQmlListProperty<ExtensionModel> *property)
 {
-    return static_cast< QList<ExtensionModel *> *>(property->data)->size();
+    ExtensionManager *extManager = static_cast< ExtensionManager *>(property->data);
+    return extManager->extensionsList.size();;
 }
 
 ExtensionModel *itemAt(QQmlListProperty<ExtensionModel> *property, int index)
 {
-    return static_cast< QList<ExtensionModel *> *>(property->data)->at(index);
+    ExtensionManager *extManager = static_cast< ExtensionManager *>(property->data);
+    return extManager->extensionsList[index].get();
 }
+
 
 QQmlListProperty<ExtensionModel> ExtensionManager::getExtensions()
 {
-    return QQmlListProperty<ExtensionModel>(this, &extensionsList, &itemSize, &itemAt);
+    return QQmlListProperty<ExtensionModel>(this, static_cast<void *>(this), &itemSize, &itemAt);
 }
 
 QmlMainContext* ExtensionManager::getMainCtx()
