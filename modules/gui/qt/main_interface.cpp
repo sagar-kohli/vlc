@@ -54,6 +54,7 @@
 #include "components/mediacenter/mlnetworkmodel.hpp"
 #include "components/recent_media_model.hpp"
 #include "components/settings.hpp"
+#include "components/extension_model.hpp"
 
 #include "components/navigation_history.hpp"
 #include "components/aboutmodel.hpp"
@@ -374,6 +375,8 @@ void MainInterface::createMainWidget( QSettings * )
     qmlRegisterType<DialogModel>("org.videolan.vlc", 0, 1, "DialogModel");
 
     qmlRegisterType<QmlEventFilter>( "org.videolan.vlc", 0, 1, "EventFilter" );
+    qmlRegisterType<ExtensionManager>( "org.videolan.vlc", 0, 1, "ExtensionManager");
+    qmlRegisterUncreatableType<ExtensionModel>( "org.videolan.vlc", 0, 1, "ExtensionModel", "");
 
     qmlRegisterType<PlayerControlBarModel>( "org.videolan.vlc", 0, 1, "PlayerControlBarModel");
 
